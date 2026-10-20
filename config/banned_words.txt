@@ -1,0 +1,16 @@
+# One word or phrase per line. Matched as whole words, case-insensitive.
+leverage
+delve
+robust
+foster
+testament
+landscape
+dynamic
+passion
+bespoke
+synergy
+game-changer
+cutting-edge
+in today's fast-paced world
+seamless
+spearheaded
