@@ -60,11 +60,13 @@ The guards stay the same when the model changes.
 
 ## Testing status (2026-10-20)
 
-- `pytest`: 6 passed, run 3 times with identical results. A scripted fake model stands in for the LLM, so the tests run offline. They cover a clean email passing, an invented stat being caught, a template opener and missing subject being caught, subject/body splitting, a retry that fixes the draft, and the FLAGGED fallback with both output files written.
-- Not tested here: live runs against Ollama or Claude. The tests prove the guards and retry loop, not how persuasive the emails are. Reply rates would need a real send and a comparison group.
+- `pytest`: 7 passed, run 3 times with identical results. A scripted fake model stands in for the LLM, so the tests run offline. They cover a clean email passing, an invented stat being caught, a template opener and missing subject being caught, subject/body splitting, a retry that fixes the draft, the FLAGGED fallback with both output files written, and other forms of banned words and `[placeholder]` text being rejected.
+- **Real run:** `qwen2.5:7b` drafted both fictional prospects' emails in 2m41s on a 2-vCPU machine with no GPU. Both passed every guard on the first attempt. They're saved unedited in `examples/sample_outputs/`, with a README on what a rep would still fix (one draft implies customer stories that don't exist, the other ignores the specific fact it was given).
+- Not tested: Claude or other paid models, and reply rates, which would need real sends and a comparison group.
 
 ## Limits
 
+- The guards check facts that can be matched as text (numbers, names, length, the ask). They can't tell when a draft hints at a claim without stating it, like "how we've helped other companies".
 - The number check compares text, so a stat restated in a different form ("nine days" for "9 days") isn't caught.
 - The agents don't browse the web. A draft is only as specific as the notes column.
 
