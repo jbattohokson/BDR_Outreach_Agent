@@ -34,6 +34,20 @@ def _banned_words() -> list[str]:
     return [ln.strip() for ln in lines if ln.strip() and not ln.startswith("#")]
 
 
+def banned_pattern(word: str) -> str:
+    """Whole-word match that also catches other forms of a single word ("leverage" -> "leveraging").
+
+    Phrases and short words stay exact. Same rule as AI_Resume_Tailor, where a real draft slipped
+    "leveraging" past an exact-word check.
+    """
+    w = word.lower()
+    if " " in w or "-" in w or len(w) < 5:
+        return rf"\b{re.escape(w)}\b"
+    stem = w[:-1] if w.endswith("e") else w
+    return rf"\b{re.escape(stem)}\w*"
+
+
+PLACEHOLDER_RE = re.compile(r"\[[^\]\n]{2,40}\]")
 MEETING_LENGTH_RE = re.compile(r"\b\d+[- ]?(?:min|minute|minutes|mins)\b", re.I)
 
 
@@ -86,7 +100,10 @@ def check_email(text: str, prospect: dict[str, str], product: str) -> GuardRepor
         report.problems.append("Remove em dashes.")
     if "!" in text:
         report.problems.append("No exclamation points.")
-    banned = [w for w in _banned_words() if re.search(rf"\b{re.escape(w)}\b", text, re.I)]
+    banned = [w for w in _banned_words() if re.search(banned_pattern(w), text, re.I)]
     if banned:
         report.problems.append(f"Banned words used: {', '.join(banned)}.")
+    placeholders = sorted(set(PLACEHOLDER_RE.findall(text)))
+    if placeholders:
+        report.problems.append(f"Fill in or remove placeholders: {', '.join(placeholders)}.")
     return report

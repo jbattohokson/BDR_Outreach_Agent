@@ -54,3 +54,9 @@ def test_flagged_after_max_retries_and_outputs_written(scripted, tmp_path):
     rows = list(csv.DictReader((tmp_path / "drafts.csv").open()))
     assert rows[0]["status"] == "FLAGGED"
     assert "FLAGGED" in (tmp_path / "drafts.md").read_text()
+
+
+def test_banned_word_forms_and_placeholders_are_caught():
+    bad = GOOD.replace("so the new hire", "leveraging it at [Company], so the new hire")
+    problems = " ".join(check_email(bad, DANA, PRODUCT).problems)
+    assert "leverage" in problems and "[Company]" in problems
