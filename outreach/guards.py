@@ -12,8 +12,40 @@ from pathlib import Path
 CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
 NUMBER_RE = re.compile(r"\$?\d[\d,]*(?:\.\d+)?\s?%?")
 MAX_WORDS = 120
-TEMPLATE_OPENERS = ("i hope this email finds you well", "i hope you're doing well", "my name is",
-                    "i wanted to reach out", "just following up")
+# Matched after _normalize_opener(), so list each phrase once, without contractions.
+# AUDITED 2026-10-21: "I hope you’re doing well" (curly apostrophe, what models usually emit),
+# "I hope you are doing well" and "I am reaching out" all passed the old exact-string list.
+TEMPLATE_OPENERS = ("i hope this email finds you well", "i hope this finds you well", "i hope you are doing well",
+                    "i hope you are well", "hope all is well", "my name is", "i wanted to reach out",
+                    "i am reaching out", "reaching out to", "just following up", "i came across your profile")
+GREETING_RE = re.compile(r"^(?:hi|hello|hey|dear)\s+([a-z][a-z'\u2019-]*)", re.I)
+_NUMBER_WORDS = ("one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|"
+                 "thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million")
+# Stats written as words: "doubled", "cut close time in half", "three times faster", "fifty percent"
+WORD_QUANTITY_RE = re.compile(
+    rf"\b(?:doubl\w*|tripl\w*|quadrupl\w*|halv\w*|in half|\w+fold|(?:{_NUMBER_WORDS})(?:[\s-]+(?:{_NUMBER_WORDS}))*"
+    rf"[\s-]+(?:percent|times|x|days?|hours?|weeks?)\b)",
+    re.I,
+)
+
+
+# Social proof the draft implies without stating (AUDITED 2026-10-21: the real Dana draft asked
+# to share "how we've helped other companies" when the product sheet names no customers).
+IMPLIED_PROOF_RE = re.compile(
+    r"\b(?:(?:we(?:'|\u2019)ve|we have) helped|helped (?:other|many|similar|dozens of|hundreds of) "
+    r"(?:companies|teams|customers|firms)|(?:companies|teams|customers|clients) like yours|"
+    r"our (?:customers|clients) (?:see|saw|have|report)|case stud(?:y|ies))",
+    re.I,
+)
+# A product sheet that backs such claims says so explicitly
+PROOF_SOURCE_RE = re.compile(r"\b(?:customers include|case stud|used by|trusted by)", re.I)
+
+
+def _normalize_opener(line: str) -> str:
+    line = line.lower().replace("\u2019", "'")
+    for short, full in (("you're", "you are"), ("i'm", "i am"), ("we're", "we are"), ("i've", "i have")):
+        line = line.replace(short, full)
+    return line
 
 
 @dataclass
@@ -83,19 +115,33 @@ def check_email(text: str, prospect: dict[str, str], product: str) -> GuardRepor
     if body.count("?") != 1:
         report.problems.append("End with exactly one question as the ask.")
 
-    lines = [ln.strip().lower() for ln in body.splitlines() if ln.strip()]
-    if lines and re.match(r"(hi|hello|hey|dear)\b", lines[0]) and len(lines[0].split()) <= 4:
+    lines = [ln.strip() for ln in body.splitlines() if ln.strip()]
+    if lines and re.match(r"(hi|hello|hey|dear)\b", lines[0], re.I) and len(lines[0].split()) <= 4:
+        # A greeting that names someone else is the classic batch mix-up (AUDITED 2026-10-21:
+        # "Hi Priya," to Dana Whitfield passed every check)
+        greet = GREETING_RE.match(lines[0])
+        name_tokens = {t.lower() for t in re.findall(r"[A-Za-z'-]+", prospect.get("name", ""))}
+        if greet and name_tokens and greet.group(1).strip("'\u2019-").lower() not in name_tokens | {"team", "there"}:
+            report.problems.append(
+                f"Greeting is addressed to '{greet.group(1)}' but the prospect is {prospect.get('name')}.")
         lines = lines[1:]  # skip the greeting, judge the real first sentence
-    opener = lines[0] if lines else ""
+    opener = _normalize_opener(lines[0]) if lines else ""
     if any(o in opener for o in TEMPLATE_OPENERS):
         report.problems.append("Opening line sounds like a template. Open with something about them.")
 
     sources = " ".join([product, *prospect.values()])
     invented = _numbers(text) - _numbers(sources)
+    src_lower = sources.lower()
+    invented |= {m.group().lower() for m in WORD_QUANTITY_RE.finditer(text) if m.group().lower() not in src_lower}
     if invented:
         report.problems.append(
             f"Numbers not in the prospect notes or product sheet: {', '.join(sorted(invented))}. Don't invent stats.")
 
+    implied = sorted({m.group() for m in IMPLIED_PROOF_RE.finditer(text)})
+    if implied and not PROOF_SOURCE_RE.search(product):
+        report.problems.append(
+            f"Implies customer results the product sheet doesn't back up: {', '.join(implied)}. "
+            "Talk about what the product does, not who it's helped.")
     if "—" in text:
         report.problems.append("Remove em dashes.")
     if "!" in text:

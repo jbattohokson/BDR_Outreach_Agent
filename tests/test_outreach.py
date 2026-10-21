@@ -72,3 +72,38 @@ def test_unquoted_comma_in_notes_gives_a_clear_error(tmp_path):
 def test_max_retries_is_read_at_call_time(monkeypatch):
     monkeypatch.setenv("OUTREACH_MAX_RETRIES", "0")
     assert max_retries() == 0
+
+
+# Audit 2026-10-21: drafts that passed every check before
+
+
+def _draft(greeting, opener, extra=""):
+    return (f"Subject: Faster close at Northbeam\n\n{greeting}\n\n{opener}\n"
+            f"Northbeam Outdoor is hiring for AP, and the close takes 9 days.{extra} "
+            "Ledgerline matches invoices to POs automatically.\nWorth a 15-minute call next week?\n\nBest,\nAlex")
+
+
+def test_opener_variants_are_caught():
+    for opener in ("I hope you’re doing well.", "I hope you are doing well.", "I'm reaching out about AP."):
+        report = check_email(_draft("Hi Dana,", opener), PROSPECTS[0], PRODUCT)
+        assert any("template" in p for p in report.problems), opener
+
+
+def test_greeting_to_the_wrong_person_is_caught():
+    report = check_email(_draft("Hi Priya,", "Saw your post about month-end."), PROSPECTS[0], PRODUCT)
+    assert any("Priya" in p for p in report.problems)
+    assert check_email(_draft("Hi Dana,", "Saw your post about month-end."), PROSPECTS[0], PRODUCT).ok
+
+
+def test_spelled_out_stats_are_caught():
+    extra = " Teams like yours cut close time in half and doubled throughput."
+    problems = " ".join(check_email(_draft("Hi Dana,", "Saw your post.", extra), PROSPECTS[0], PRODUCT).problems)
+    assert "in half" in problems and "doubled" in problems
+
+
+def test_implied_customer_proof_is_caught_unless_the_product_sheet_backs_it():
+    hint = GOOD.replace("Worth a 15-minute look", "Could I share how we've helped other companies? Worth a 15-minute look")
+    hint = hint.replace("?\n\nAlex", ".\n\nAlex").replace("companies?", "companies,")
+    assert any("Implies customer results" in p for p in check_email(hint, DANA, PRODUCT).problems)
+    backed = PRODUCT + "\nCustomers include three regional retailers (case studies on request).\n"
+    assert not any("Implies" in p for p in check_email(hint, DANA, backed).problems)

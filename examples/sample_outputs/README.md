@@ -12,3 +12,5 @@ What a human should still fix before sending (the guards can't see these):
 - **Marcus Oyelaran:** the notes say Tidewater opened 3 new clinic locations, but the draft says the company is "focused on streamlining operations across multiple locations". That's vaguer than the fact it was given, and "Have you considered this solution?" is a weak ask.
 
 That's the intended split: code blocks the failures that can be checked (invented numbers, length, missing ask), and a rep reviews tone and claims before anything is sent. Nothing is ever sent automatically.
+
+**Update 2026-10-21:** a guard added in the audit now catches the Dana problem above (implied customer proof the product sheet doesn't back up), so under the current checks her draft would be sent back for a retry rather than marked ready. The files here are left as the original run produced them.
