@@ -2,7 +2,7 @@ import csv
 from pathlib import Path
 
 from outreach.__main__ import load_prospects, write_outputs
-from outreach.crew import MAX_RETRIES, draft_all
+from outreach.crew import draft_all, max_retries
 from outreach.guards import check_email, split_email
 
 EXAMPLES = Path(__file__).resolve().parent.parent / "examples"
@@ -48,7 +48,7 @@ def test_crew_retries_then_passes(scripted):
 
 
 def test_flagged_after_max_retries_and_outputs_written(scripted, tmp_path):
-    llm = scripted(*([ANGLE, INVENTED] * (MAX_RETRIES + 1)))
+    llm = scripted(*([ANGLE, INVENTED] * (max_retries() + 1)))
     drafts = draft_all([DANA], PRODUCT, "Alex", stub=llm)
     write_outputs(drafts, tmp_path)
     rows = list(csv.DictReader((tmp_path / "drafts.csv").open()))
@@ -60,3 +60,15 @@ def test_banned_word_forms_and_placeholders_are_caught():
     bad = GOOD.replace("so the new hire", "leveraging it at [Company], so the new hire")
     problems = " ".join(check_email(bad, DANA, PRODUCT).problems)
     assert "leverage" in problems and "[Company]" in problems
+
+def test_unquoted_comma_in_notes_gives_a_clear_error(tmp_path):
+    bad = tmp_path / "p.csv"
+    bad.write_text("name,title,company,notes\nDana,Controller,Northbeam,close takes 9 days, hiring AP\n")
+    import pytest
+    with pytest.raises(SystemExit, match="line 2"):
+        load_prospects(bad)
+
+
+def test_max_retries_is_read_at_call_time(monkeypatch):
+    monkeypatch.setenv("OUTREACH_MAX_RETRIES", "0")
+    assert max_retries() == 0
