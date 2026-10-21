@@ -6,6 +6,9 @@ Built with [CrewAI](https://docs.crewai.com). Runs free on a local model through
 
 **Business question:** can a small, free model write outbound emails a rep would actually send, as long as code catches the predictable failures?
 
+
+**Write-up:** [`BDR_Outreach_Agent.html`](BDR_Outreach_Agent.html) (also `docs/BDR_Outreach_Agent_Report.pdf`) walks through the real runs, what the checks caught and what they missed.
+
 ## How it works
 
 ```

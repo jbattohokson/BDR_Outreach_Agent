@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BDR Outreach Agent</title>
+<style>
+  :root{--ink:#0f1117;--ink-light:#4a4f5e;--border:#dde1ea;--bg:#f7f8fc;--white:#ffffff;--accent:#1a56db;--accent-dim:#e8eefb;--warn:#c0392b;--warn-dim:#fdf0ee;--green:#1a7f4b;--green-dim:#eaf5ef;--amber:#b45309;--amber-dim:#fef3e2;--mono:'Courier New',Courier,monospace}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Georgia',serif;font-size:16px;line-height:1.7;color:var(--ink);background:var(--bg)}
+  a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+  .page-wrap{max-width:860px;margin:0 auto;padding:0 24px 80px}
+  header{background:#0f1117;color:var(--white);padding:56px 0 44px}
+  header .page-wrap{padding-top:0;padding-bottom:0}
+  .eyebrow{font-family:'Arial',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8b93a8;margin-bottom:14px}
+  h1{font-size:clamp(24px,4vw,38px);font-weight:normal;line-height:1.2;letter-spacing:-.02em;margin-bottom:18px}
+  h1 em{font-style:italic;color:#8b93a8}
+  .meta{font-family:'Arial',sans-serif;font-size:13px;color:#8b93a8;display:flex;flex-wrap:wrap;gap:20px}
+  .meta span::before{content:'· '}
+  .sticky-nav{position:sticky;top:0;background:var(--white);border-bottom:1px solid var(--border);z-index:100;padding:10px 0}
+  .sticky-nav .page-wrap{display:flex;gap:24px;flex-wrap:wrap;padding-top:0;padding-bottom:0}
+  .sticky-nav a{font-family:'Arial',sans-serif;font-size:12.5px;color:var(--ink-light);font-weight:500}
+  .sticky-nav a:hover{color:var(--accent);text-decoration:none}
+  .exec-summary{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--accent);padding:28px 32px;margin:40px 0 48px;border-radius:0 6px 6px 0}
+  .exec-summary h2{font-family:'Arial',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+  .exec-summary p{font-size:15.5px;margin-bottom:10px}
+  .exec-summary p:last-child{margin-bottom:0}
+  .kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:16px;margin-bottom:56px}
+  .kpi{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:20px 18px;text-align:center}
+  .kpi .num{font-size:26px;font-weight:700;font-family:'Arial',sans-serif;letter-spacing:-.03em;line-height:1;margin-bottom:6px}
+  .kpi .num.warn{color:var(--warn)}.kpi .num.good{color:var(--green)}.kpi .num.amber{color:var(--amber)}.kpi .num.blue{color:var(--accent)}
+  .kpi .label{font-family:'Arial',sans-serif;font-size:11.5px;color:var(--ink-light);line-height:1.4}
+  .section{margin-bottom:56px}
+  .section-label{font-family:'Arial',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-light);margin-bottom:6px}
+  h2.section-title{font-size:22px;font-weight:normal;letter-spacing:-.01em;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+  .finding{background:var(--white);border:1px solid var(--border);border-radius:8px;margin-bottom:20px;overflow:hidden}
+  .finding-header{display:flex;align-items:flex-start;gap:16px;padding:22px 24px 18px;border-bottom:1px solid var(--border)}
+  .finding-number{font-family:'Arial',sans-serif;font-size:11px;font-weight:700;color:var(--white);background:var(--ink);border-radius:4px;padding:3px 7px;flex-shrink:0;margin-top:2px}
+  .finding-title{font-size:16.5px;font-weight:normal;line-height:1.35}
+  .finding-body{padding:20px 24px}
+  .finding-body p{font-size:14.5px;margin-bottom:12px}
+  .finding-body p:last-child{margin-bottom:0}
+  .finding-body img{width:100%;height:auto;border:1px solid var(--border);border-radius:6px;margin:6px 0 14px;background:#fff}
+  .impact-block{border-radius:6px;padding:16px 18px;margin-top:14px;margin-bottom:14px}
+  .impact-block.red{background:var(--warn-dim);border-left:3px solid var(--warn)}
+  .impact-block.green{background:var(--green-dim);border-left:3px solid var(--green)}
+  .impact-block.amber{background:var(--amber-dim);border-left:3px solid var(--amber)}
+  .impact-block.blue{background:var(--accent-dim);border-left:3px solid var(--accent)}
+  .impact-label{font-family:'Arial',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+  .impact-block.red .impact-label{color:var(--warn)}.impact-block.green .impact-label{color:var(--green)}
+  .impact-block.amber .impact-label{color:var(--amber)}.impact-block.blue .impact-label{color:var(--accent)}
+  .impact-block p{font-size:14px;line-height:1.6;margin:0}
+  .data-table-wrap{overflow-x:auto;margin:16px 0}
+  table{width:100%;border-collapse:collapse;font-family:'Arial',sans-serif;font-size:13px}
+  th{background:var(--ink);color:var(--white);text-align:left;padding:9px 12px;font-weight:600;font-size:12px;letter-spacing:.04em}
+  td{padding:9px 12px;border-bottom:1px solid var(--border)}
+  tr:last-child td{border-bottom:none}
+  tr:nth-child(even) td{background:var(--bg)}
+  .neg{color:var(--warn);font-weight:700}.pos{color:var(--green);font-weight:700}
+  .rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .rec-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:20px}
+  .rec-priority{font-family:'Arial',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+  .rec-priority.p1{color:var(--warn)}.rec-priority.p2{color:var(--amber)}.rec-priority.p3{color:var(--accent)}
+  .rec-card h3{font-size:15px;font-weight:normal;margin-bottom:10px;line-height:1.3}
+  .rec-card p{font-size:13.5px;color:var(--ink-light);line-height:1.6;margin-bottom:10px}
+  .rec-card p:last-child{margin-bottom:0}
+  .rec-impact{font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;color:var(--ink);margin-top:10px}
+  pre{font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px 16px;overflow-x:auto;line-height:1.55;white-space:pre-wrap}
+  footer{border-top:1px solid var(--border);padding-top:28px;margin-top:64px;font-family:'Arial',sans-serif;font-size:12.5px;color:var(--ink-light);display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
+  @media print{.kpi,.rec-card,.impact-block,img,tr,.exec-summary{break-inside:avoid}.finding-header{break-after:avoid}}
+  @media(max-width:600px){.exec-summary{padding:20px 18px}.finding-header,.finding-body{padding:16px}}
+  .model-stat{display:inline-block;font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 10px;margin:3px 4px 3px 0}
+</style>
+</head>
+<body>
+<header><div class="page-wrap"><p class="eyebrow">AI Agents · Sales Development</p>
+<h1>Cold emails a free model can write,<br><em>and the checks that decide whether they go out.</em></h1>
+<div class="meta"><span>Julian Batto-Hokson</span><span>Real run · fictional prospects</span><span>Python · CrewAI · Ollama · pytest</span><span>October 2026</span></div></div></header>
+<nav class="sticky-nav"><div class="page-wrap"><a href="#summary">Summary</a><a href="#findings">Real Run</a><a href="#how">Design</a><a href="#data">Setup</a></div></nav>
+<div class="page-wrap">
+<div class="status-banner" style="margin-top:32px;background:var(--amber-dim);border:1px solid var(--amber);border-radius:6px;padding:14px 18px;font-family:Arial,sans-serif;font-size:13px;color:var(--amber)"><strong>Scope note:</strong> the product ("Ledgerline", an accounts payable tool) and both prospects are fictional, so no real person's name or details are in the repo. The drafts below are real, unedited model output. Nothing is ever sent automatically.</div>
+<section id="summary" class="exec-summary">
+  <h2>Executive Summary</h2>
+  <p>Cold email fails in predictable ways: too long, no clear ask, a made-up stat about the prospect, an opener that reads like a template. Each of those can be checked in code. This tool has a CrewAI researcher pick one angle from the prospect's notes, a writer draft the email, and plain Python checks run on every draft before it's saved. A failing draft goes back with the exact problems; after two retries it's saved marked FLAGGED for a rep to fix.</p>
+  <p>On a real run with qwen2.5 (7B), both drafts passed every check on the first attempt in 2 minutes 41 seconds total, at no model cost. Reading them as a rep would, each still needed one fix the checks can't see, which is why the output is a review file, not a send.</p>
+</section>
+<div class="kpi-strip"><div class="kpi"><div class="num good">2 / 2</div><div class="label">Drafts passed every check on attempt 1</div></div><div class="kpi"><div class="num blue">2m41s</div><div class="label">For the batch on 2 CPUs, $0 model cost</div></div><div class="kpi"><div class="num blue">11</div><div class="label">Checks per draft, all in plain Python</div></div><div class="kpi"><div class="num blue">7</div><div class="label">Offline tests, no model needed</div></div><div class="kpi"><div class="num amber">0</div><div class="label">Emails sent automatically, by design</div></div></div>
+<section id="findings" class="section">
+  <p class="section-label">Real Run</p>
+  <h2 class="section-title">What the drafts looked like</h2>
+  <div class="finding"><div class="finding-header"><span class="finding-number">01</span><span class="finding-title">Dana Whitfield, Controller at Northbeam Outdoor (fictional)</span></div><div class="finding-body">
+  <p>Notes given to the model: posted on LinkedIn that month-end close takes 9 days; hiring an AP specialist.</p>
+  <pre>Subject: Streamline Month-End Closings with Ledgerline
+
+Hello Dana,
+
+I noticed you posted that month-end close at Northbeam Outdoor takes 9 days. Our Ledgerline solution automates accounts payable, which can help reduce this process time. Could I share more details on how we’ve helped other companies streamline their month-end close?
+
+Best,  
+Alex</pre>
+  <div class="impact-block green"><p class="impact-label">What the checks confirmed</p><p>Subject under 7 words, body under 120, the company named, the "9 days" figure taken from her notes, exactly one question, no template opener, no banned words.</p></div>
+  <div class="impact-block amber"><p class="impact-label">What a rep would still fix</p><p>"How we've helped other companies" hints at customer stories the product sheet doesn't contain. The prompt says never to invent customers; the model implied them instead, and a text check can't catch an implication.</p></div>
+  </div></div>
+  <div class="finding"><div class="finding-header"><span class="finding-number">02</span><span class="finding-title">Marcus Oyelaran, VP Finance at Tidewater Clinics (fictional)</span></div><div class="finding-body">
+  <p>Notes: opened 3 new clinic locations this year; a job post mentions consolidating vendor payments. The draft passed, but it said the company is "focused on streamlining operations across multiple locations", which is vaguer than the fact it was given, and closed with a weak ask ("Have you considered this solution?").</p>
+  </div></div>
+  <div class="finding"><div class="finding-header"><span class="finding-number">03</span><span class="finding-title">A fix carried over from the resume tailor</span></div><div class="finding-body">
+  <p>A real run of my AI Resume Tailor showed that "leveraging" could slip past a banned list containing "leverage", and that "[Company Name]" placeholders weren't checked. Both projects share the banned list, so the same fix and a test were added here.</p>
+  </div></div>
+</section>
+<section id="how" class="section">
+  <p class="section-label">Design</p>
+  <h2 class="section-title">How it works</h2>
+  <pre>Account Researcher ──> Outbound Email Writer ──> guards ──┬─ pass ──> output/drafts.md + drafts.csv
+  (one angle from the notes)   (subject + body)             └─ fail ──> retry with feedback (max 2), then FLAGGED</pre>
+  <div class="data-table-wrap"><table><thead><tr><th>Check</th><th>What it catches</th></tr></thead><tbody>
+  <tr><td>Invented numbers</td><td>Any figure not in the prospect notes or product sheet ("15-minute call" is allowed)</td></tr>
+  <tr><td>Personalization</td><td>The body never names the prospect's company</td></tr>
+  <tr><td>One ask</td><td>Exactly one question</td></tr>
+  <tr><td>Template opener</td><td>"My name is...", "I hope this email finds you well" and similar</td></tr>
+  <tr><td>Length</td><td>Subject over 7 words, body over 120 words</td></tr>
+  <tr><td>Style</td><td>Em dashes, exclamation points, banned words and their variants, placeholders</td></tr>
+  </tbody></table></div>
+</section>
+<section id="data" class="section">
+  <p class="section-label">Technical Reference</p>
+  <h2 class="section-title">Setup and scope</h2>
+  <div class="data-table-wrap"><table><thead><tr><th>Dimension</th><th>Value</th></tr></thead><tbody>
+  <tr><td>Framework</td><td>CrewAI, one sequential crew per prospect</td></tr>
+  <tr><td>Model</td><td>Ollama qwen2.5:7b by default (free, local); Claude via one env var</td></tr>
+  <tr><td>Input</td><td>CSV of name, title, company, notes, plus a product sheet</td></tr>
+  <tr><td>Output</td><td>drafts.md for reading, drafts.csv with status, attempts and problems</td></tr>
+  <tr><td>Not measured</td><td>Reply rates, which need real sends and a comparison group</td></tr>
+  <tr><td>Tools</td><td>Python, CrewAI, Ollama, pytest</td></tr>
+  </tbody></table></div>
+</section>
+</div>
+<footer style="max-width:860px;margin:0 auto;padding:0 24px 48px"><span>Julian Batto-Hokson · October 2026</span><span><a href="https://github.com/jbattohokson/BDR_Outreach_Agent">GitHub Repository</a> · CrewAI · Ollama</span></footer>
+</body></html>
