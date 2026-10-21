@@ -26,7 +26,11 @@ def load_prospects(path: Path) -> list[dict[str, str]]:
         missing = REQUIRED_COLUMNS - set(reader.fieldnames or [])
         if missing:
             sys.exit(f"{path} is missing columns: {', '.join(sorted(missing))}")
-        rows = [{k: (v or "").strip() for k, v in row.items()} for row in reader]
+        rows = []
+        for line_no, row in enumerate(reader, start=2):
+            if None in row:  # DictReader puts extra fields under None, e.g. an unquoted comma in notes
+                sys.exit(f"{path} line {line_no} has more fields than headers. Quote values that contain commas.")
+            rows.append({k: (v or "").strip() for k, v in row.items()})
     return [r for r in rows if r.get("name")]
 
 

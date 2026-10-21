@@ -9,7 +9,12 @@ from crewai import Agent, BaseLLM, Crew, Process, Task
 from outreach.guards import GuardReport, check_email
 from outreach.llm import get_llm
 
-MAX_RETRIES = int(os.getenv("OUTREACH_MAX_RETRIES", "2"))
+
+
+def max_retries() -> int:
+    # Read at call time: the CLI loads .env after this module is imported.
+    return int(os.getenv("OUTREACH_MAX_RETRIES", "2"))
+
 RULES = (
     "Rules: Use only facts from the prospect notes and product sheet. Never invent numbers, "
     "customers or news about the prospect. No em dashes, no exclamation points, no buzzwords. "
@@ -62,13 +67,14 @@ def draft_email(prospect: dict[str, str], product: str, sender: str, llm: BaseLL
     inputs = {**{k: prospect.get(k, "") for k in ("name", "title", "company", "notes")},
               "product": product, "sender": sender}
     feedback, text, report = "", "", GuardReport(["Model never ran."])
-    for attempt in range(1, MAX_RETRIES + 2):
+    retries = max_retries()
+    for attempt in range(1, retries + 2):
         text = str(build_crew(llm, feedback).kickoff(inputs=inputs).raw).strip()
         report = check_email(text, prospect, product)
         if report.ok:
             return Draft(prospect, text, report, attempt)
         feedback = report.as_feedback()
-    return Draft(prospect, text, report, MAX_RETRIES + 1)
+    return Draft(prospect, text, report, retries + 1)
 
 
 def draft_all(prospects: list[dict[str, str]], product: str, sender: str,

@@ -60,7 +60,7 @@ The guards stay the same when the model changes.
 
 ## Testing status (2026-10-20)
 
-- `pytest`: 6 passed, run 3 times with identical results. A scripted fake model stands in for the LLM, so the tests run offline. They cover a clean email passing, an invented stat being caught, a template opener and missing subject being caught, subject/body splitting, a retry that fixes the draft, and the FLAGGED fallback with both output files written.
+- `pytest`: 8 passed. A scripted fake model stands in for the LLM, so the tests run offline. They cover a clean email passing, an invented stat being caught, a template opener and missing subject being caught, subject/body splitting, a retry that fixes the draft, the FLAGGED fallback with both output files written, a clear error for an unquoted comma in the prospects CSV, and `OUTREACH_MAX_RETRIES` being read from `.env`.
 - Not tested here: live runs against Ollama or Claude. The tests prove the guards and retry loop, not how persuasive the emails are. Reply rates would need a real send and a comparison group.
 
 ## Limits
