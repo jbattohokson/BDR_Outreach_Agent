@@ -73,6 +73,10 @@ The guards stay the same when the model changes.
 - The number check compares text, so a stat restated in a different form ("nine days" for "9 days") isn't caught.
 - The agents don't browse the web. A draft is only as specific as the notes column.
 
+## About
+
+Drafts a first-touch cold email for every prospect in a CSV with CrewAI, then fact-checks each draft in plain Python for invented stats, length, a clear ask and stock openers. Runs free on a local Ollama model. Python.
+
 ## License
 
 MIT (see `LICENSE`).
